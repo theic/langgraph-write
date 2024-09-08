@@ -1,13 +1,19 @@
-import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
+import { AIMessage } from "@langchain/core/messages";
 import {
   END,
   MessagesAnnotation,
   START,
   StateGraph,
 } from "@langchain/langgraph";
-import { AIMessage, BaseMessage } from "@langchain/core/messages";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
-import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
+
+const systemMessage = {
+  role: 'system',
+  content:
+    `You are a personal copywriter. Your task is to write messages, emails, and wishes upon request, ensuring perfect grammar and tailored content. You excel at crafting compelling and appropriate text for various occasions and audiences.`,
+};
 
 const llm = new ChatOpenAI({
   model: "gpt-4o",
@@ -25,7 +31,7 @@ const callModel = async (state: typeof MessagesAnnotation.State) => {
   const { messages } = state;
 
   const llmWithTools = llm.bindTools(tools);
-  const result = await llmWithTools.invoke(messages);
+  const result = await llmWithTools.invoke([systemMessage, ...messages]);
   return { messages: [result] };
 };
 
